@@ -1,4 +1,7 @@
 const path = require('path');
+// Load env from repo root and backend folder (fallback)
+try { require('dotenv').config({ path: path.join(__dirname, '..', '.env') }); } catch (_) {}
+try { require('dotenv').config({ path: path.join(__dirname, '.env') }); } catch (_) {}
 const express = require('express');
 const logging = require(path.join(__dirname, '..', 'loggingMiddleware'));
 const crypto = require('node:crypto');
@@ -69,6 +72,7 @@ app.post('/shorten', (req, res) => {
 		}
 	} else {
 		// auto-generate unique code   we can use the liy 
+		
 		let attempts = 0;
 		do {
 			code = generateCode(7);
