@@ -178,5 +178,20 @@ async function postToRemote(url, token, payload) {
 
 module.exports = loggingMiddleware;
 module.exports.Log = sendLog;
+module.exports.generateJwt = generateJwt;
+
+// Minimal HS256 JWT creator (no external deps)
+function generateJwt(claims = {}, secret = process.env.JWT_SECRET || 'dev-secret', { expiresInSeconds } = {}) {
+	const header = { alg: 'HS256', typ: 'JWT' };
+	const nowSec = Math.floor(Date.now() / 1000);
+	const body = { iat: nowSec, ...claims };
+	if (Number.isFinite(expiresInSeconds) && expiresInSeconds > 0) {
+		body.exp = nowSec + Number(expiresInSeconds);
+	}
+	const enc = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64').replace(/=+$/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+	const data = `${enc(header)}.${enc(body)}`;
+	const sig = require('node:crypto').createHmac('sha256', secret).update(data).digest('base64').replace(/=+$/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+	return `${data}.${sig}`;
+}
 
 
